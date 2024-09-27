@@ -43,7 +43,7 @@ class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
-    cookie: Mapped[str] = mapped_column(String(30))
+    user_session: Mapped[str] = mapped_column(String(30))
     playlists: Mapped[List[Playlist]] = relationship()
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, name={self.name!r})"
@@ -69,9 +69,9 @@ def remove_song(song_name: str, artist: str):
         session.commit()
 
 
-def playlist_add_song(user_cookie: str, playlist_name: str, song_name: str, artist: str) -> str:
+def playlist_add_song(user_session: str, playlist_name: str, song_name: str, artist: str) -> str:
     session = session_maker()
-    user = session.query(User).filter_by(cookie=user_cookie).first()
+    user = session.query(User).filter_by(user_session=user_session).first()
     if user == None:
         return "User does not exist"
 
@@ -89,9 +89,9 @@ def playlist_add_song(user_cookie: str, playlist_name: str, song_name: str, arti
     session.commit()
     return "Successfully added song"
 
-def playlist_remove_song(user_cookie: str, playlist_name: str, song_name: str, artist: str) -> str:
+def playlist_remove_song(user_session: str, playlist_name: str, song_name: str, artist: str) -> str:
     session = session_maker()
-    user = session.query(User).filter_by(cookie=user_cookie).first()
+    user = session.query(User).filter_by(user_session=user_session).first()
     if user is None:
         return "User does not exist"
     playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
@@ -103,9 +103,9 @@ def playlist_remove_song(user_cookie: str, playlist_name: str, song_name: str, a
     session.commit()
     return "Successfully removed song"
 
-def list_playlist(user_cookie: str, playlist_name: str) -> Optional[list[tuple[str, str]]]:
+def list_playlist(user_session: str, playlist_name: str) -> Optional[list[tuple[str, str]]]:
     session = session_maker()
-    user = session.query(User).filter_by(cookie=user_cookie).first()
+    user = session.query(User).filter_by(user_session=user_session).first()
     if user is None:
         return None
     playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
@@ -117,9 +117,9 @@ def list_playlist(user_cookie: str, playlist_name: str) -> Optional[list[tuple[s
         songs.append((song.name, song.artist))
     return songs
 
-def clear_playlist(user_cookie: str, playlist_name: str) -> str:
+def clear_playlist(user_session: str, playlist_name: str) -> str:
     session = session_maker()
-    user = session.query(User).filter_by(cookie=user_cookie).first()
+    user = session.query(User).filter_by(user_session=user_session).first()
     if user is None:
         return "User does not exist"
 
@@ -134,13 +134,13 @@ def clear_playlist(user_cookie: str, playlist_name: str) -> str:
     
 
 
-def new_user(cookie: str, name: str):
+def new_user(user_session: str, name: str):
     session = session_maker()
-    user = session.query(User).filter_by(cookie=cookie).first()
+    user = session.query(User).filter_by(user_session=user_session).first()
     if user is not None:
         print("user exists")
         return
-    new_user = User(cookie=cookie, name=name)
+    new_user = User(user_session=user_session, name=name)
     session.add(new_user)
     session.commit()
 
