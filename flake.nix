@@ -26,9 +26,11 @@
           torchsummary
           flask
           waitress
+          sqlalchemy
         ]);
         systemPackages = with pkgs; [
-          python311
+          pyright
+          python-launcher
         ];
         musicCRS = pkgs.stdenv.mkDerivation {
           pname = "musicCRS-server";
