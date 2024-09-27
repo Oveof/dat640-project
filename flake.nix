@@ -27,6 +27,17 @@
           flask
           waitress
           sqlalchemy
+          flask-socketio
+          (
+              buildPythonPackage rec {
+                pname = "dialoguekit";
+                version = "0.0.9";
+                src = fetchPypi {
+                  inherit pname version;
+                  sha256 = "sha256-YqPx5y8hDZn5euwV15mg4zI0QFrQy/galkgKLAQfsNk=";
+                };
+              }
+          )
         ]);
         systemPackages = with pkgs; [
           pyright
