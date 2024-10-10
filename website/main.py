@@ -1,95 +1,23 @@
-START_PORT = 8000
-
-import sqlite3
-from flask import Flask, request, jsonify , render_template, session
-import socket
-from waitress import serve
-import io
-from db import clear_playlist, list_playlist, playlist_add_song, playlist_remove_song, new_user
+PORT_NUMBER = 8000
 import string
 import random
-
+import sqlite3
 import numpy as np
 
-
-def render_playlist(playlist: list[tuple[str,str]]) -> str:
-    if playlist == None:
-        return ""
-    html = ""
-    html += "<ul>"
-    for song, artist in playlist:
-        html += f"<li>{song} - {artist}</li>"
-
-    html += "</ul>"
-    html += "</div>"
-    return html
-
-def bind_socket():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = START_PORT
-    while True:
-        try:
-            s.bind(("127.0.0.1",port))
-            break
-        except:
-            port += 1
-    s.close()
-    return port
+from waitress import serve
+from flask import Flask, request, jsonify , render_template, session
 
 
-my_port = bind_socket()
+from source.db import clear_playlist, list_playlist, playlist_add_song, playlist_remove_song, new_user
+from source.nlp import handle_nonempty_user_input
 
-app = Flask(__name__)
+
+app = Flask(__name__,
+            static_folder='templates/assets',
+            template_folder='templates'
+            )
 app.secret_key = 'the random string'
 app.config["SESSION_PERMANENT"] = True
-@app.route('/nlp', methods=['POST'])
-def process_input():
-    input_text = None
-    
-    if 'text' not in request.form:
-        return "ERROR"
-    input_text = request.form['text'].split(" ")  # Filter out no alphabetical characters
-
-    cmd = input_text[0]
-
-
-    html = "<div class='responses'>"
-
-    all_commands = [("/add", "Adds to playlist"),
-                    ("/remove", "Removes from playlist"),
-                    ("/list", "List playlist"),
-                    ("/clear", "Clears playlist")]
-
-    match cmd:
-        case "/add":
-            arguments = ''.join(input_text[1:])
-            song_name = arguments.split("-")[0]
-            artist_name = arguments.split("-")[1]
-            response = playlist_add_song(session["user"], "default", song_name, artist_name)
-            html += response
-        case "/remove":
-            arguments = ''.join(input_text[1:])
-            song_name = arguments.split("-")[0]
-            artist_name = arguments.split("-")[1]
-            response = playlist_remove_song(session["user"], "default", song_name, artist_name)
-            html += response
-        case "/list":
-            playlist = list_playlist(session["user"], "default")
-            if playlist is not None:
-                html += render_playlist(playlist)
-        case "/clear":
-            response = clear_playlist(session["user"], "default")
-            html += response
-        case "/help":
-            html += "<ul>"
-            for command, explanation in all_commands:
-                html += f"<li>{command} - {explanation}"
-            html += "</ul>"
-        case _:
-            html += "<p>Unknown command</p>"
-    
-    html+="</div>"
-    return html
 
 
 @app.route('/', methods=["GET"])
@@ -99,8 +27,21 @@ def index():
 
     return render_template('index.html')
 
+@app.route('/components/chat', methods=["POST"])
+def chat_submit():
+    user_text = request.form['text']
+    if user_text=="":
+        return "",404
+
+    response=handle_nonempty_user_input(user_text)
+    return render_template("components/chat.html",user_text=user_text, response=response)
+
+
 if __name__ == "__main__":
-    # app.run(host='127.0.0.1', port=my_port,debug=False)
-    serve(app, host='0.0.0.0', port=8000) # Production run
-## To get auto reload use:
-# flask --app main.py --debug run
+    app.run(host='127.0.0.1', port=PORT_NUMBER,debug=True)
+    # serve(app,
+    #       host='0.0.0.0',
+    #       port=PORT_NUMBER) # Production run
+
+
+
