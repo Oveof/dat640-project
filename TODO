@@ -1,0 +1,31 @@
+DONE - Database structure diagram
+TODO - Sessions
+
+
+Requirements 1:
+    [X] [4 points] Provide a web-based chat environment where the user can interact with the conversational music recommender system (MusicCRS).
+
+    [ TODO ] [4 points] The user should be able to add songs to a playlist, remove songs from the playlist, view the playlist, and clear the playlist via natural language instructions or commands via the chat
+
+    [ TODO ] [2 points] [optional] Provide a way for the user to interact more directly with the playlist, not just via the chat
+
+    [ TODO ] [2 points] [optional] Provide a way for the user to learn about the functionality of the system
+
+
+Requirements 2
+    [ TODO ] [6 points] The user should be able to ask basic questions about albums, songs, and artists. For example, "When was album X released?", "How many albums has artist Y released?", or "Which album features song X?". At least one question should be supported for each category: albums, songs, and artists (i.e., a minimum of three questions).
+
+    [ TODO ] [3 points] [optional] Add support for additional questions related to albums, songs, or artists – 1 point per question,
+
+    [ TODO ] [2 points] [optional] Dynamically detect which features the user has not yet utilized during their interaction with the system and introduce these features in a non-intrusive manner
+
+    [ TODO ] [2 points] [optional] Proactively suggest questions the user can ask about songs they add to the playlist
+
+Requirements 3:
+   [ TODO ] [6 points] Create and populate a music database that contains title, artist, album, and year for each song. The database should contain at least 100k songs. Any database backend may be used (including relational, NoSQL, and in-memory databases). The database may be populated from any source that allows for non-commercial use of data.
+
+   [ TODO ] [2 points] Only songs that can be found in the database can be added to the playlist. Songs may be added by title or by combination of artist and title (e.g., "[artist]: [title]" or "[title] by [artist]")
+
+   [ TODO ] [2 points] [optional] Have the database contain over 1 million songs
+
+   [ TODO ] [2 points] [optional] Include other metadata fields in the database (e.g., genre) - 1 point per extra field,

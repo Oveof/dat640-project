@@ -1,6 +1,6 @@
 # from typing import List
 # from typing import Optional
-from sqlalchemy import ForeignKey, MetaData
+from sqlalchemy import ForeignKey, MetaData, UniqueConstraint
 from sqlalchemy import String
 from sqlalchemy import Integer
 from sqlalchemy import create_engine
@@ -15,38 +15,58 @@ from typing import List, Optional
 class Base(DeclarativeBase):
     pass
 
+NAME_LENGTH = 1024
+SESSION_LENGTH = 32
 
 playlist_song = Table(
     "playlist_song",
     Base.metadata,
-    Column("playlist_id", ForeignKey("playlists.id")),
-    Column("song_id", ForeignKey("songs.id")),
+    Column("playlist_id", ForeignKey("playlists.id"), nullable=False),
+    Column("song_id", ForeignKey("songs.id"),  nullable=False),
+    Column("position", Integer(),nullable=False),
+    UniqueConstraint("playlist_id","position"),
 )
+
+song_artists = Table(
+    "song_artists",
+    Base.metadata,
+    Column("artist_id", ForeignKey("artists.id"), nullable=False),
+    Column("song_id", ForeignKey("songs.id"),  nullable=False),
+    UniqueConstraint("artist_id","song_id")
+)
+class Artist(Base):
+    __tablename__ = "artists"
+    id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+
+
 class Song(Base):
     __tablename__ = "songs"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
-    artist: Mapped[str] = mapped_column(String(30))
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r})"
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    artists: Mapped[list[Artist]] = relationship(secondary=song_artists)
+    album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
+
+
+class Album(Base):
+    __tablename__ = "albums"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    release_date:Mapped[int] = mapped_column(Integer,nullable=False)
 
 class Playlist(Base):
     __tablename__ = "playlists"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     songs: Mapped[list[Song]] = relationship(secondary=playlist_song)
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r})"
 
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
-    user_session: Mapped[str] = mapped_column(String(30))
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH))
+    user_session: Mapped[str] = mapped_column(String(SESSION_LENGTH), nullable=False, unique=True)
     playlists: Mapped[List[Playlist]] = relationship()
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r})"
 
 
 engine = create_engine("sqlite:///sqlite.db", echo=False)
@@ -152,9 +172,9 @@ def new_user(user_session: str, name: str):
 
 
 
-if __name__ == "__main__":
-    new_user("bruh", "ove")
-    playlist_add_song("bruh", "my_playst", "Never gonna give you up", "Rick Astley")
-    # playlist_remove_song("bruh", "my_playst", "Never gonna give you up")
-    print(list_playlist("bruh", "my_playst"))
+# if __name__ == "__main__":
+#     new_user("bruh", "ove")
+#     playlist_add_song("bruh", "my_playst", "Never gonna give you up", "Rick Astley")
+#     # playlist_remove_song("bruh", "my_playst", "Never gonna give you up")
+#     print(list_playlist("bruh", "my_playst"))
 
