@@ -118,7 +118,7 @@ def playlist_remove_song(user_session: str, playlist_name: str, song_name: str, 
     song = session.query(Song).filter_by(name=song_name, artist=artist).first()
     if playlist is None or song is None:
         return "Song or playlist does not exist"
-    
+
     playlist.songs.remove(song)
     session.commit()
     return "Successfully removed song"
@@ -146,12 +146,12 @@ def clear_playlist(user_session: str, playlist_name: str) -> str:
     playlist = session.query(Playlist).filter_by(name=playlist_name).first()
     if playlist is None:
         return "playlist does not exist"
-    
+
     playlist.songs.clear()
 
     session.commit()
     return "Cleared playlist"
-    
+
 
 
 def new_user(user_session: str, name: str):

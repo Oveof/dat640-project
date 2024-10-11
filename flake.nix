@@ -24,6 +24,9 @@
           torch
           torchvision
           torchsummary
+          transformers
+          accelerate
+          python-dotenv
           flask
           waitress
           sqlalchemy
