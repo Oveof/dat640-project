@@ -25,6 +25,7 @@
           torchvision
           torchsummary
           transformers
+          sentencepiece
           accelerate
           python-dotenv
           flask
