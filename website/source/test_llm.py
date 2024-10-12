@@ -13,13 +13,17 @@ from huggingface_hub import login
 
 login(token=HF_TOKEN)
 
-model_name = "mistralai/Mistral-7B-v0.3"
+model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+local_cache_dir = "./local_model_cache"
+
+model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", cache_dir=local_cache_dir)
+tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=local_cache_dir)
+
 
 messages = [
 
@@ -33,5 +37,4 @@ messages = [
 
 model_inputs = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
 generated_ids = model.generate(model_inputs, max_new_tokens=100, do_sample=True)
-tokenizer.batch_decode(generated_ids)[0]
-"Mayonnaise can be made as follows: (...)"
+print(tokenizer.batch_decode(generated_ids)[0])

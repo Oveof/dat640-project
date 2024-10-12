@@ -10,7 +10,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        pythonEnv = pkgs.python311.withPackages (ps: with ps; [
+        pythonEnv = pkgs.python312.withPackages (ps: with ps; [
           pip
           h5py
           imutils
@@ -21,18 +21,19 @@
           scikit-image
           scikit-learn
           scipy
-          torch
+	  torch
           torchvision
-          torchsummary
-          transformers
-          accelerate
+	  torchsummary
+	  transformers
+          sentencepiece
+	  accelerate
           python-dotenv
           flask
           waitress
           sqlalchemy
         ]);
         systemPackages = with pkgs; [
-          pyright
+	  pyright
           python-launcher
         ];
         musicCRS = pkgs.stdenv.mkDerivation {
