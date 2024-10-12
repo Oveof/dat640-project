@@ -21,12 +21,12 @@
           scikit-image
           scikit-learn
           scipy
-	  torch
+          torch
           torchvision
-	  torchsummary
-	  transformers
+          torchsummary
+          transformers
           sentencepiece
-	  accelerate
+          accelerate
           python-dotenv
           flask
           waitress
