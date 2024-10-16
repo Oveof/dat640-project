@@ -34,25 +34,48 @@ song_artists = Table(
     Column("song_id", ForeignKey("songs.id"),  nullable=False),
     UniqueConstraint("artist_id","song_id")
 )
+
+song_genre = Table(
+    "song_genre",
+    Base.metadata,
+    Column("genre_id", ForeignKey("genres.id"), nullable=False),
+    Column("song_id", ForeignKey("songs.id"),  nullable=False),
+    UniqueConstraint("genre_id","song_id")
+)
+
+song_album = Table(
+    "song_album",
+    Base.metadata,
+    Column("album_id", ForeignKey("albums.id"), nullable=False),
+    Column("song_id", ForeignKey("songs.id"),  nullable=False),
+    UniqueConstraint("album_id","song_id")
+)
 class Artist(Base):
     __tablename__ = "artists"
     id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
 
-
-class Song(Base):
-    __tablename__ = "songs"
+class Genre(Base):
+    __tablename__ = "genres"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
-    artists: Mapped[list[Artist]] = relationship(secondary=song_artists)
-    album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
-
 
 class Album(Base):
     __tablename__ = "albums"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
     release_date:Mapped[int] = mapped_column(Integer,nullable=False)
+
+class Song(Base):
+    __tablename__ = "songs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    # compare_name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    artists: Mapped[list[Artist]] = relationship(secondary=song_artists)
+    # album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
+    albums: Mapped[list[Album]] = relationship(secondary=song_album)
+    genres: Mapped[list[Genre]] = relationship(secondary=song_genre)
+
 
 class Playlist(Base):
     __tablename__ = "playlists"
@@ -73,12 +96,45 @@ engine = create_engine("sqlite:///sqlite.db", echo=False)
 Base.metadata.create_all(engine)
 session_maker = sessionmaker(bind=engine)
 
-def add_song(song_name: str, artist: str):
+def add_to_table(session, table, name: str, commit=True):
+    entry = session.query(table).filter_by(name=name).first()
+    if entry is None:
+        entry = table(name=name)
+        session.add(entry)
+        session.commit() if commit else ...
+    return entry
+
+
+
+def add_song(song_name: str, artist_names: List[str], genre_names: List[str], album_name: str, year: int):
     session = session_maker()
-    song = session.query(Song).filter_by(name=song_name, artist=artist).first()
+    genres = []
+    for genre_name in genre_names:
+        genres.append(add_to_table(session, Genre, genre_name, False))
+
+    artists = []
+    for artist_name in artist_names:
+        artists.append(add_to_table(session, Artist, artist_name, False))
+
+
+    album = session.query(Album).filter_by(name=album_name).first()
+    if album is None:
+        album = Album(name=album_name, release_date=year)
+        session.add(album)
+    # albums = []
+    # for album_name in album_names:
+    #     albums.append(add_to_table(Album, album_name, True))
+    
+
+    song = session.query(Song).filter_by(name=song_name).first()
     if song is None:
-        song = Song(name=song_name, artist=artist)
+        song = Song(name=song_name)
+        song.artists.extend(artists)
+        song.genres.extend(genres)
+        song.albums.append(album)
         session.add(song)
+        session.commit()
+    else:
         session.commit()
 
 def remove_song(song_name: str, artist: str):
@@ -172,9 +228,4 @@ def new_user(user_session: str, name: str):
 
 
 
-# if __name__ == "__main__":
-#     new_user("bruh", "ove")
-#     playlist_add_song("bruh", "my_playst", "Never gonna give you up", "Rick Astley")
-#     # playlist_remove_song("bruh", "my_playst", "Never gonna give you up")
-#     print(list_playlist("bruh", "my_playst"))
 
