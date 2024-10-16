@@ -46,6 +46,7 @@
             mkdir -p $out/bin
             cat > $out/bin/musicCRS-server << EOF
             #!/usr/bin/env bash
+	    pythonEnv/bin/pip install mistral-common
             ${pythonEnv}/bin/python ./website/main.py
             EOF
             chmod +x $out/bin/musicCRS-server

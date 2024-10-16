@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   music_crs:
-    image: music_crs:latest
+    build:
+      dockerfile: Dockerfile
     network_mode: "host"
     devices:
       - "/dev/kfd:/dev/kfd"
