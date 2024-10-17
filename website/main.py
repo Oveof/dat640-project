@@ -38,7 +38,7 @@ def chat_submit():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=PORT_NUMBER,debug=True)
+    app.run(host='0.0.0.0', port=PORT_NUMBER,debug=False)
     # serve(app,
     #       host='0.0.0.0',
     #       port=PORT_NUMBER) # Production run

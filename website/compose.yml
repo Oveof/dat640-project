@@ -8,6 +8,8 @@ services:
     devices:
       - "/dev/kfd:/dev/kfd"
       - "/dev/dri:/dev/dri"
+    volumes:
+      - ./local_model_cache:/music_crs/local_model_cache:Z
     group_add:
       - "video"
     ipc: "host"

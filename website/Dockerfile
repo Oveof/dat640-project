@@ -18,8 +18,8 @@ RUN pip3 install python-dotenv
 RUN pip3 install flask
 RUN pip3 install waitress
 RUN pip3 install sqlalchemy
-RUN pip3 install mistral-common
-RUN pip3 install mistral-inference
+RUN pip3 install optimum
+RUN pip3 install auto-gptq --no-build-isolation --extra-index-url https://huggingface.github.io/autogptq-index/whl/rocm573/
 
 # RUN pip3 install --force-reinstall 'https://github.com/bitsandbytes-foundation/bitsandbytes/releases/download/continuous-release_multi-backend-refactor/bitsandbytes-0.44.1.dev0-py3-none-manylinux_2_24_x86_64.whl'
 RUN pip3 install "transformers>=4.45.1"
@@ -27,7 +27,7 @@ RUN pip3 install "transformers>=4.45.1"
 
 WORKDIR /music_crs
 
-COPY local_model_cache ./local_model_cache
+#COPY local_model_cache ./local_model_cache
 COPY source ./source
 COPY templates ./templates
 COPY main.py ./main.py
