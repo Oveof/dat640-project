@@ -11,22 +11,23 @@
       let
         pkgs = import nixpkgs { inherit system; };
         pythonEnv = pkgs.python312.withPackages (ps: with ps; [
-          pip
-          h5py
-          imutils
-          matplotlib
-          numpy
-          opencv4
-          pillow
-          scikit-image
-          scikit-learn
-          scipy
-          torch
-          torchvision
-          torchsummary
-          transformers
-          sentencepiece
-          accelerate
+          # h5py
+          # imutils
+          # matplotlib
+          # numpy
+          # opencv4
+          # pillow
+          # scikit-image
+          # scikit-learn
+          # scipy
+          # torch
+          # torchvision
+          # torchsummary
+          # transformers
+          # sentencepiece
+          # accelerate
+          # pip
+          ollama
           python-dotenv
           flask
           waitress
