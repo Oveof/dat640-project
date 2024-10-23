@@ -1,105 +1,84 @@
-from source.db import clear_playlist, list_playlist, playlist_add_song, playlist_remove_song, new_user
+import ollama
+
+from source.tools import tools
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import render_text_description
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama.llms import OllamaLLM
+from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
+
+ollama_model = OllamaLLM(base_url="http://10.10.10.20:11434/",model="mistral") # ollama.Client(host='10.10.10.20:11434'))
 
 
-def handle_nonempty_user_input(text):
+system_prompt = f"""\
+You are a helpful playlist manager bot and you have access to the following set of tools.
+Here are the names and descriptions for each tool:
 
-    input_text = text.split(" ")  # Filter out no alphabetical characters
+{render_text_description(tools)}
 
-    cmd = input_text[0]
+Do not mention or expose tools.
+If asked about capabilities, describe them naturally as features.
+Based on user input, decide if a tool should be used or if a direct response is enough.
 
-    NOT_RECOGNIZED = "Command does not exist"
-    MALFORMED_COMMAND = "Commands should start with /"
+When a tool is needed, return the tool name and the proper information required by the tool.
+"""
 
+examples = [
+    HumanMessage(
+        "search for happy", name="example_user"
+    ),
+    AIMessage(
+        "",
+        name="example_assistant",
+        tool_calls=[
+            { "name": "search_song", "args": {"song_title": "happy"} }
+        ],
+    ),
+    ToolMessage("""song:{ id: 231, name:  happy, Artist: Pharrell Williams, Release: 21.11.2023, Genre: [Soul, R&B] }""", tool_call_id="1"),
+    AIMessage(
+        """I found the following result when searching for happy.
+        Song: Happy
+        Artist: Pharell Williams
+        Release date: 21.11.2023
+        Genre: Soul, R&B
 
-    if cmd[0] != '/':
-        return MALFORMED_COMMAND
+        Would you like to add it to a playlist?
+        """,
+        name="example_assistant",
+    ),
+    HumanMessage(
+        "yes, add it to something good", name="example_user"
+    ),
+    AIMessage(
+        "",
+        name="example_assistant",
+        tool_calls=[
+            { "name": "add_song", "args": {"song_title": "happy"} }
+        ],
+    ),
+    
+]
 
-    cmd = str(cmd[1:]).strip()
+ollama_model.bind_tools(tools)
 
+def handle_nonempty_user_input( prompt ):
+    
+    
+    prompt = ChatPromptTemplate.from_messages(
+    [("system", system_prompt), ("user", "{input}")]
+    )
+    chain = prompt | ollama_model
+    
+    
+    response =chain.invoke({"input": prompt})
+    # response =  ollama_model.chat(
+    #     model='mistral',
+    #     messages=prompt,
+    #     tools=tools,
+    # )
 
-    command_descriptions = {
-        "add" : "Add a song to a playlist",
-        "remove": "Remove a song from a playlist",
-        "list" : "List all songs in a playlist",
-        "clear" : "Delete all songs from the playlist",
-        "help" : "Print this message"
-    }
+    print(response)
+    return response
 
-    def print_help(_args):
-        text=""
-        for key,value in command_descriptions.items():
-            text+=f"/{key} : {value} \n"
-
-        return text
-
-    command_functions = {
-        "add" : playlist_add_song,
-        "remove": playlist_remove_song,
-        "list" : list_playlist,
-        "clear" : clear_playlist,
-        "help" : print_help
-    }
-
-
-    action = command_functions.get(cmd)
-    print(f"DEBUG IS: {action}   ---------------------")
-
-    if action!=None:
-        return action(input_text[1:])
-
-
-    return NOT_RECOGNIZED
-
-
-
-
-
-
-# @app.route('/nlp', methods=['POST'])
-# def process_input():
-#     input_text = None
-
-#     if 'text' not in request.form:
-#         return "ERROR"
-#     input_text = request.form['text'].split(" ")  # Filter out no alphabetical characters
-
-#     cmd = input_text[0]
-
-
-#     html = "<div class='responses'>"
-
-#     all_commands = [("/add", "Adds to playlist"),
-#                     ("/remove", "Removes from playlist"),
-#                     ("/list", "List playlist"),
-#                     ("/clear", "Clears playlist")]
-
-#     match cmd:
-#         case "/add":
-#             arguments = ''.join(input_text[1:])
-#             song_name = arguments.split("-")[0]
-#             artist_name = arguments.split("-")[1]
-#             response = playlist_add_song(session["user"], "default", song_name, artist_name)
-#             html += response
-#         case "/remove":
-#             arguments = ''.join(input_text[1:])
-#             song_name = arguments.split("-")[0]
-#             artist_name = arguments.split("-")[1]
-#             response = playlist_remove_song(session["user"], "default", song_name, artist_name)
-#             html += response
-#         case "/list":
-#             playlist = list_playlist(session["user"], "default")
-#             if playlist is not None:
-#                 html += render_playlist(playlist)
-#         case "/clear":
-#             response = clear_playlist(session["user"], "default")
-#             html += response
-#         case "/help":
-#             html += "<ul>"
-#             for command, explanation in all_commands:
-#                 html += f"<li>{command} - {explanation}"
-#             html += "</ul>"
-#         case _:
-#             html += "<p>Unknown command</p>"
-#     html+="</div>"
-#     return html
 

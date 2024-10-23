@@ -11,10 +11,8 @@
       let
         pkgs = import nixpkgs { inherit system; };
         pythonEnv = pkgs.python312.withPackages (ps: with ps; [
-          # h5py
           # imutils
           # matplotlib
-          # numpy
           # opencv4
           # pillow
           # scikit-image
@@ -26,7 +24,10 @@
           # transformers
           # sentencepiece
           # accelerate
-          # pip
+          pip
+          numpy
+          langchain
+          langchain-ollama
           ollama
           python-dotenv
           flask
@@ -47,7 +48,6 @@
             mkdir -p $out/bin
             cat > $out/bin/musicCRS-server << EOF
             #!/usr/bin/env bash
-	    pythonEnv/bin/pip install mistral-common
             ${pythonEnv}/bin/python ./website/main.py
             EOF
             chmod +x $out/bin/musicCRS-server
