@@ -28,6 +28,7 @@
           numpy
           langchain
           langchain-ollama
+          langgraph
           ollama
           python-dotenv
           flask
