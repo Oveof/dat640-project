@@ -22,7 +22,8 @@ def search_song(song_title:
         select(Song)
         .options(
             selectinload(Song.artists),
-            selectinload(Song.albums)
+            selectinload(Song.albums),
+            selectinload(Song.genres),
         )
         .where(func.lower(Song.name).like(search_pattern))
     )
