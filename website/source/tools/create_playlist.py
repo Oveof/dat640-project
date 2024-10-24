@@ -14,11 +14,16 @@ def create_playlist(
     ) -> Annotated[str, "message, containing information on result"]:
     """Create a playlist"""
     
-    print("CALLED CREATE PLAYLIST")
+    print(f"CALLED CREATE PLAYLIST {playlist_name}")
 
     user = get_current_user()
 
-    return create_playlist(playlist_name,user.id)
+    try:
+        return create_playlist(playlist_name,user.id)
+    except Exception as exception:
+        print(exception)
+        return "Function call failed"
+
 
 
 
