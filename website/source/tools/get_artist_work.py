@@ -15,43 +15,40 @@ def get_artist_work(artist_name: Annotated[str, "name of artist"])-> Annotated[d
         return db_get_artist_work(artist_name)
     except Exception as exception:
         print(exception)
-        return {"error": "Something went wrong"}
+        return "Function call failed"
 
 def db_get_artist_work(artist_name: str) -> dict:
     session = session_maker()
     search_pattern = f"%{artist_name.lower()}%"
 
-    # Query the first artist with a case-insensitive partial match on the name
     artist_stmt = (
         select(Artist)
         .where(func.lower(Artist.name).like(search_pattern))
         .limit(1)
     )
 
-    artist = session.execute(artist_stmt).scalars().first()  # Get the first matching artist
+    artist = session.execute(artist_stmt).scalars().first()
 
-    if artist:
-        # Now, query for the songs and albums associated with this artist
-        song_stmt = (
-            select(Song)
-            .options(selectinload(Song.albums))  # Load albums for each song
-            .join(song_artists)  # Join the association table song_artists
-            .where(song_artists.c.artist_id == artist.id)  # Filter by artist ID
-        )
+    if not artist:
+        return {}
 
-        songs = session.execute(song_stmt).scalars().all()  # Fetch all matching songs
+    song_stmt = (
+        select(Song)
+        .options(selectinload(Song.albums))
+        .join(song_artists)
+        .where(song_artists.c.artist_id == artist.id)
+    )
 
-        # Serialize the artist's works (songs and albums) to JSON-compatible format
-        artist_data = {
-            "artist": artist.name,
-            "songs": [
-                {
-                    "song_name": song.name,
-                    "albums": [{"album_name": album.name, "release_date": album.release_date} for album in song.albums]
-                }
-                for song in songs
-            ]
-        }
-        return artist_data
-    else:
-        return {"error": "Artist not found"}
+    songs = session.execute(song_stmt).scalars().all()
+
+    artist_data = {
+        "artist": artist.name,
+        "songs": [
+            {
+                "song_name": song.name,
+                "albums": [{"album_name": album.name, "release_date": album.release_date} for album in song.albums]
+            }
+            for song in songs
+        ]
+    }
+    return artist_data

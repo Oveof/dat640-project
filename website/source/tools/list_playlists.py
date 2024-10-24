@@ -17,9 +17,8 @@ def list_playlists() -> Annotated[List[Annotated[str, "A list of the users playl
     try:
         db_list_playlists(user.id)
     except Exception as exception:
-        #TODO: probably should not be empty list?
         print(exception)
-        return []
+        return "Function call failed"
 
 def db_list_playlists(user_id: int):
     session = session_maker()
