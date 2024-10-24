@@ -30,6 +30,7 @@ from source.tools.add_song_to_playlist import *
 from source.tools.remove_song_from_playlist import *
 from source.tools.search_song import *
 from source.tools.get_artist_work import *
+from source.tools.get_song_genre import *
 
 
 
@@ -50,6 +51,7 @@ examples.extend(add_song_to_playlist_examples)
 tool_dict = {
     "search_song": search_song,
     "query_artist_works": get_artist_work,
+    "query_song_genre": get_song_genre,
 
     "create_playlist": create_playlist,
     "list_playlists": list_playlists,

@@ -1,12 +1,7 @@
-import json
 from langchain_core.tools import tool
 from typing import Annotated, List
-from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
-from source.db import Artist, Song, song_artists, session_maker
+from source.db import Song, session_maker
 
-from sqlalchemy import select
-from sqlalchemy import func
-from sqlalchemy.orm import selectinload
 
 @tool
 def get_song_genre(song_name: Annotated[str, "name of song"])-> Annotated[List, "A list of genres for song"]:
