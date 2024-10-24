@@ -1,6 +1,7 @@
 from langchain_core.tools import tool
 from typing import Annotated, List
 from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
+from source.db import search_song_name
 
 
 
@@ -10,7 +11,7 @@ def search_song(song_title:
     ) -> Annotated[List[dict], "list of songs formatted in json with attributes"]:
     """Search for a song in the database"""
     print(f"SEARCH SONG WAS CALLED: {song_title}")
-    return []
+    return search_song_name(song_title)
 
 
 search_song_examples = [

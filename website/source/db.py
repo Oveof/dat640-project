@@ -1,5 +1,8 @@
 # from typing import List
 # from typing import Optional
+from sqlalchemy import select
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import ForeignKey, MetaData, UniqueConstraint
 from sqlalchemy import String
 from sqlalchemy import Integer
@@ -11,6 +14,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from typing import List, Optional
+from sqlalchemy.ext.declarative import DeclarativeMeta
+import json
 
 class Base(DeclarativeBase):
     pass
@@ -34,25 +39,67 @@ song_artists = Table(
     Column("song_id", ForeignKey("songs.id"),  nullable=False),
     UniqueConstraint("artist_id","song_id")
 )
+
+song_genre = Table(
+    "song_genre",
+    Base.metadata,
+    Column("genre_id", ForeignKey("genres.id"), nullable=False),
+    Column("song_id", ForeignKey("songs.id"),  nullable=False),
+    UniqueConstraint("genre_id","song_id")
+)
+
+song_album = Table(
+    "song_album",
+    Base.metadata,
+    Column("album_id", ForeignKey("albums.id"), nullable=False),
+    Column("song_id", ForeignKey("songs.id"),  nullable=False),
+    UniqueConstraint("album_id","song_id")
+)
 class Artist(Base):
     __tablename__ = "artists"
     id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 
-
-class Song(Base):
-    __tablename__ = "songs"
+class Genre(Base):
+    __tablename__ = "genres"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
-    artists: Mapped[list[Artist]] = relationship(secondary=song_artists)
-    album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
-
 
 class Album(Base):
     __tablename__ = "albums"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
     release_date:Mapped[int] = mapped_column(Integer,nullable=False)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "release_date": self.release_date
+        }
+
+class Song(Base):
+    __tablename__ = "songs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    # compare_name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    artists: Mapped[list[Artist]] = relationship(secondary=song_artists)
+    # album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
+    albums: Mapped[list[Album]] = relationship(secondary=song_album)
+    genres: Mapped[list[Genre]] = relationship(secondary=song_genre)
+    # release_date:Mapped[int] = mapped_column(Integer,nullable=False)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "artists": [artist.to_dict() for artist in self.artists],
+            "albums": [album.to_dict() for album in self.albums]
+        }
+
 
 class Playlist(Base):
     __tablename__ = "playlists"
@@ -68,15 +115,31 @@ class User(Base):
     user_session: Mapped[str] = mapped_column(String(SESSION_LENGTH), nullable=False, unique=True)
     playlists: Mapped[List[Playlist]] = relationship()
 
-
 engine = create_engine("sqlite:///sqlite.db", echo=False)
 Base.metadata.create_all(engine)
 session_maker = sessionmaker(bind=engine)
 
-def search_song(song_name: str) -> Optional[Song]:
+def search_song_name(song_name: str) -> list[dict]:
     session = session_maker()
-    song = session.query(Song).filter_by(name=song_name).first()
-    return song 
+    search_pattern = f"%{song_name.lower()}%"
+    stmt = (
+        select(Song)
+        .options(
+            selectinload(Song.artists),  # Join artists
+            selectinload(Song.albums)    # Join albums
+        )
+        .where(func.lower(Song.name).like(search_pattern))  # Filter by song name
+    )
+    
+    # Execute the query
+    results = session.execute(stmt).scalars().all()
+    # Convert result to a list of dictionaries
+    songs_list = [song.to_dict() for song in results]
+    if len(songs_list) > 5:
+        songs_list = songs_list[:5]
+
+    # Serialize to JSON
+    return json.dumps(songs_list, indent=4)
 
 
 def add_song(song_name: str, artist: str):
@@ -178,7 +241,9 @@ def new_user(user_session: str, name: str):
 
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
+    print(search_song_name("raid"))
+    
 #     new_user("bruh", "ove")
 #     playlist_add_song("bruh", "my_playst", "Never gonna give you up", "Rick Astley")
 #     # playlist_remove_song("bruh", "my_playst", "Never gonna give you up")
