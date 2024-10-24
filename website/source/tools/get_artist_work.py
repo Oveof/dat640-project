@@ -28,7 +28,7 @@ def db_get_artist_work(artist_name: str) -> dict:
         .limit(1)
     )
 
-    artist_name = session.execute(artist_stmt).scalars().first()  # Get the first matching artist
+    artist = session.execute(artist_stmt).scalars().first()  # Get the first matching artist
 
     if artist:
         # Now, query for the songs and albums associated with this artist
