@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import render_text_description
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
+from langchain_core.messages import HumanMessage, ToolMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langgraph.checkpoint.memory import MemorySaver
@@ -70,7 +70,7 @@ system_prompt = f"""
 You are a helpful chat assistant which manages playlists.
 
 Strict rules:
-    1. Do not call tools unless its really obvious that its what the user wants.
+    1. Use the tools at your disposal.
     2. Interact with the user.
     3. Do not talk about anything other than music related things.
 # """
@@ -86,6 +86,10 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
 
 def call_model(state: MessagesState):
     messages = state['messages']
+    if not any(type(message) == SystemMessage for message in messages):
+        system_message = SystemMessage(content=system_prompt)
+        messages.insert(0, system_message)  # Insert at the beginning to avoid altering the flow
+
     response = ollama_model.invoke(messages)
     return {"messages": [response]}
 

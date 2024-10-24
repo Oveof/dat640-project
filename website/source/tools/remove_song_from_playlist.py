@@ -13,7 +13,12 @@ def remove_song_from_playlist(
 
     user = get_current_user()
 
-    return db_remove_song_from_playlist(song_id,playlist_id,user.id)
+    try:
+        db_remove_song_from_playlist(song_id,playlist_id,user.id)
+    except Exception as exception:
+        print(exception)
+        return "Function call failed"
+
 
 def db_remove_song_from_playlist(song_id,playlist_id,user_id):
     session = session_maker()

@@ -13,7 +13,11 @@ def clear_playlist(
     print("CALLED CLEAR PLAYLIST")
     user = get_current_user()
 
-    return db_clear_playlist(playlist_name,user.id)
+    try:
+        return db_clear_playlist(playlist_name,user.id)
+    except Exception as exception:
+        print(exception)
+        return "Function call failed"
 
 
 

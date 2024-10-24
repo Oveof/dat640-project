@@ -15,7 +15,12 @@ def add_song_to_playlist(
     print(f"CALLED ADD SONG TO PLAYLIST: SONG_ID {song_id} , playlist_id: {playlist_id}")
 
     user = get_current_user()
-    return db_add_song_to_playlist(song_id,playlist_id,user.id)
+    
+    try:
+        return db_add_song_to_playlist(song_id,playlist_id,user.id)
+    except Exception as exception:
+        print(exception)
+        return "Function call failed"
 
 
 def db_add_song_to_playlist(song_id,playlist_id,user_id):

@@ -15,7 +15,11 @@ def delete_playlist(
     """Deletes a playlist based on id"""
 
     user = get_current_user()
-    return db_delete_playlist(playlist_id,user.id)
+    try:
+        return db_delete_playlist(playlist_id,user.id)
+    except Exception as exception:
+        print(exception)
+        return "Function call failed"
 
 def db_delete_playlist(playlist_id, user_id):
     session = session_maker()
