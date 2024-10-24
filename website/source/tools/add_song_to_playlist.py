@@ -1,17 +1,44 @@
 from langchain_core.tools import tool
 from typing import Annotated, List
 from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
-
+from source.db import Playlist, Song, get_current_user, session_maker
+from sqlalchemy import select
 
 
 @tool
 def add_song_to_playlist(
     song_id: Annotated[int, "song id"],
     playlist_id: Annotated[int, "playlist id"]
-    ) -> Annotated[bool, "True or False, means success or failure to add song."]:
-    """Add a song to a playlist"""
+) -> Annotated[bool, "True or False, means success or failure to add song"]:
+    """Add a song to a user's playlist, song and playlist id can be found by searching for the song first, and then listing the playlists and their id's"""
 
-    return True
+    print(f"CALLED ADD SONG TO PLAYLIST: SONG_ID {song_id} , playlist_id: {playlist_id}")
+    
+    session = session_maker()
+    user = get_current_user()
+
+    stmt = select(Playlist).filter_by(id=playlist_id,user_id=user.id)
+    playlist = session.execute(stmt).scalars().first()
+
+    # playlist = session.query(Playlist).filter_by(id=playlist_id, user_id=user.id).first()
+
+    if not playlist:
+        return "Playlist not found"
+
+    song = session.query(Song).filter_by(id=song_id).first()
+
+    if not song:
+        return "Song not found"
+
+
+    playlist.songs.append(song)
+    session.commit()
+
+    return "Success"
+
+
+
+
 add_song_to_playlist_examples = [
     HumanMessage(
         "Add the song 'Happy' to the playlist 'Feel Good Hits'", name="example_user"
