@@ -11,10 +11,14 @@ def remove_song_from_playlist(
 ) -> Annotated[str, "Informational error, or success message"]:
     """Remove a song from a user's playlist"""
 
-    session = session_maker()
     user = get_current_user()
 
-    playlist = session.query(Playlist).filter_by(id=playlist_id, user_id=user.id).first()
+    return db_remove_song_from_playlist(song_id,playlist_id,user.id)
+
+def db_remove_song_from_playlist(song_id,playlist_id,user_id):
+    session = session_maker()
+
+    playlist = session.query(Playlist).filter_by(id=playlist_id, user_id=user_id).first()
 
     if not playlist:
         return "Playlist not found"

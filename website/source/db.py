@@ -119,87 +119,84 @@ Base.metadata.create_all(engine)
 session_maker = sessionmaker(bind=engine)
 
 
+def add_song(song_name: str, artist: str):
+    session = session_maker()
+    song = session.query(Song).filter_by(name=song_name, artist=artist).first()
+    if song is None:
+        song = Song(name=song_name, artist=artist)
+        session.add(song)
+        session.commit()
+
+def remove_song(song_name: str, artist: str):
+    session = session_maker()
+    song = session.query(Song).filter_by(name=song_name, artist=artist).first()
+    if song is not None:
+        session.delete(song)
+        session.commit()
 
 
-# def add_song(song_name: str, artist: str):
-#     session = session_maker()
-#     song = session.query(Song).filter_by(name=song_name, artist=artist).first()
-#     if song is None:
-#         song = Song(name=song_name, artist=artist)
-#         session.add(song)
-#         session.commit()
+def playlist_add_song(user_session: str, playlist_name: str, song_name: str, artist: str) -> str:
+    session = session_maker()
+    user = session.query(User).filter_by(user_session=user_session).first()
+    if user == None:
+        return "User does not exist"
 
-# def remove_song(song_name: str, artist: str):
-#     session = session_maker()
-#     song = session.query(Song).filter_by(name=song_name, artist=artist).first()
-#     if song is not None:
-#         session.delete(song)
-#         session.commit()
+    playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
+    if playlist is None:
+        playlist = Playlist(name=playlist_name, user_id=user.id)
+        session.add(playlist)
 
+    song = session.query(Song).filter_by(name=song_name).first()
+    if song is None:
+        song = Song(name=song_name, artist=artist)
+        session.add(song)
+    playlist.songs.append(song)
 
-# def playlist_add_song(user_session: str, playlist_name: str, song_name: str, artist: str) -> str:
-#     session = session_maker()
-#     user = session.query(User).filter_by(user_session=user_session).first()
-#     if user == None:
-#         return "User does not exist"
+    session.commit()
+    return "Successfully added song"
 
-#     playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
-#     if playlist is None:
-#         playlist = Playlist(name=playlist_name, user_id=user.id)
-#         session.add(playlist)
+def playlist_remove_song(user_session: str, playlist_name: str, song_name: str, artist: str) -> str:
+    session = session_maker()
+    user = session.query(User).filter_by(user_session=user_session).first()
+    if user is None:
+        return "User does not exist"
+    playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
+    song = session.query(Song).filter_by(name=song_name, artist=artist).first()
+    if playlist is None or song is None:
+        return "Song or playlist does not exist"
 
-#     song = session.query(Song).filter_by(name=song_name).first()
-#     if song is None:
-#         song = Song(name=song_name, artist=artist)
-#         session.add(song)
-#     playlist.songs.append(song)
+    playlist.songs.remove(song)
+    session.commit()
+    return "Successfully removed song"
 
-#     session.commit()
-#     return "Successfully added song"
+def list_playlist(user_session: str, playlist_name: str) -> Optional[list[tuple[str, str]]]:
+    session = session_maker()
+    user = session.query(User).filter_by(user_session=user_session).first()
+    if user is None:
+        return None
+    playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
+    if playlist is None:
+        return None
 
-# def playlist_remove_song(user_session: str, playlist_name: str, song_name: str, artist: str) -> str:
-#     session = session_maker()
-#     user = session.query(User).filter_by(user_session=user_session).first()
-#     if user is None:
-#         return "User does not exist"
-#     playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
-#     song = session.query(Song).filter_by(name=song_name, artist=artist).first()
-#     if playlist is None or song is None:
-#         return "Song or playlist does not exist"
+    songs = []
+    for song in playlist.songs:
+        songs.append((song.name, song.artist))
+    return songs
 
-#     playlist.songs.remove(song)
-#     session.commit()
-#     return "Successfully removed song"
+def clear_playlist(user_session: str, playlist_name: str) -> str:
+    session = session_maker()
+    user = session.query(User).filter_by(user_session=user_session).first()
+    if user is None:
+        return "User does not exist"
 
-# def list_playlist(user_session: str, playlist_name: str) -> Optional[list[tuple[str, str]]]:
-#     session = session_maker()
-#     user = session.query(User).filter_by(user_session=user_session).first()
-#     if user is None:
-#         return None
-#     playlist = session.query(Playlist).filter_by(name=playlist_name, user_id=user.id).first()
-#     if playlist is None:
-#         return None
+    playlist = session.query(Playlist).filter_by(name=playlist_name).first()
+    if playlist is None:
+        return "playlist does not exist"
 
-#     songs = []
-#     for song in playlist.songs:
-#         songs.append((song.name, song.artist))
-#     return songs
+    playlist.songs.clear()
 
-# def clear_playlist(user_session: str, playlist_name: str) -> str:
-#     session = session_maker()
-#     user = session.query(User).filter_by(user_session=user_session).first()
-#     if user is None:
-#         return "User does not exist"
-
-#     playlist = session.query(Playlist).filter_by(name=playlist_name).first()
-#     if playlist is None:
-#         return "playlist does not exist"
-
-#     playlist.songs.clear()
-
-#     session.commit()
-#     return "Cleared playlist"
-
+    session.commit()
+    return "Cleared playlist"
 
 
 def create_user(user_session: str, name: str):
@@ -218,7 +215,6 @@ def get_current_user()->User:
     user = session.query(User).filter_by(user_session=session_id).first()
     if user == None:
         create_user(session_id,'')
-        
     return user
 
 

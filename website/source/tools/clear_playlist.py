@@ -10,10 +10,16 @@ def clear_playlist(
 ) -> Annotated[str, "message, containing information on result"]:
     """Clear all songs from a playlist"""
 
+    print("CALLED CLEAR PLAYLIST")
     user = get_current_user()
-    session = session_maker()
 
-    stmt = select(Playlist).filter_by(name=playlist_name,user_id=user.id)
+    return db_clear_playlist(playlist_name,user.id)
+
+
+
+def db_clear_playlist(playlist_name,user_id):
+    session = session_maker()
+    stmt = select(Playlist).filter_by(name=playlist_name,user_id=user_id)
     playlist = session.execute(stmt).scalars().first()
 
     if not playlist:

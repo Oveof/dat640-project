@@ -15,9 +15,12 @@ def delete_playlist(
     """Deletes a playlist based on id"""
 
     user = get_current_user()
+    return db_delete_playlist(playlist_id,user.id)
+
+def db_delete_playlist(playlist_id, user_id):
     session = session_maker()
 
-    stmt = select(Playlist).filter_by(id=playlist_id,user_id=user.id)
+    stmt = select(Playlist).filter_by(id=playlist_id,user_id=user_id)
     playlist = session.execute(stmt).scalars().first()
 
     if not playlist:

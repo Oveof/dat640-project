@@ -17,14 +17,19 @@ def create_playlist(
     print("CALLED CREATE PLAYLIST")
 
     user = get_current_user()
+
+    return create_playlist(playlist_name,user.id)
+
+
+
+def db_create_playlist(playlist_name,user_id):
     session = session_maker()
 
-    new_playlist = Playlist(name=playlist_name, user_id=user.id, songs=[])
+    new_playlist = Playlist(name=playlist_name, user_id=user_id, songs=[])
     session.add(new_playlist)
     session.commit()
 
     return "Successfully created playlist"
-
 
 if __name__ == "__main__":
     print(create_playlist("raid"))

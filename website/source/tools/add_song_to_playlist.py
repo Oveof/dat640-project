@@ -13,11 +13,14 @@ def add_song_to_playlist(
     """Add a song to a user's playlist, song and playlist id can be found by searching for the song first, and then listing the playlists and their id's"""
 
     print(f"CALLED ADD SONG TO PLAYLIST: SONG_ID {song_id} , playlist_id: {playlist_id}")
-    
-    session = session_maker()
-    user = get_current_user()
 
-    stmt = select(Playlist).filter_by(id=playlist_id,user_id=user.id)
+    user = get_current_user()
+    return db_add_song_to_playlist(song_id,playlist_id,user.id)
+
+
+def db_add_song_to_playlist(song_id,playlist_id,user_id):
+    session = session_maker()
+    stmt = select(Playlist).filter_by(id=playlist_id,user_id=user_id)
     playlist = session.execute(stmt).scalars().first()
 
     # playlist = session.query(Playlist).filter_by(id=playlist_id, user_id=user.id).first()
@@ -33,9 +36,7 @@ def add_song_to_playlist(
 
     playlist.songs.append(song)
     session.commit()
-
     return "Success"
-
 
 
 
