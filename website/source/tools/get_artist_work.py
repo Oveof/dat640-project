@@ -30,20 +30,20 @@ def db_get_artist_work(artist_name: str) -> dict:
 
     artist_name = session.execute(artist_stmt).scalars().first()  # Get the first matching artist
 
-    if artist_name:
+    if artist:
         # Now, query for the songs and albums associated with this artist
         song_stmt = (
             select(Song)
             .options(selectinload(Song.albums))  # Load albums for each song
             .join(song_artists)  # Join the association table song_artists
-            .where(song_artists.c.artist_id == artist_name.id)  # Filter by artist ID
+            .where(song_artists.c.artist_id == artist.id)  # Filter by artist ID
         )
 
         songs = session.execute(song_stmt).scalars().all()  # Fetch all matching songs
 
         # Serialize the artist's works (songs and albums) to JSON-compatible format
         artist_data = {
-            "artist": artist_name.name,
+            "artist": artist.name,
             "songs": [
                 {
                     "song_name": song.name,
