@@ -27,7 +27,7 @@ playlist_song = Table(
     Base.metadata,
     Column("playlist_id", ForeignKey("playlists.id"), nullable=False),
     Column("song_id", ForeignKey("songs.id"),  nullable=False),
-    Column("position", Integer(),nullable=False),
+    Column("position", Integer(),nullable=False, autoincrement=True),
     UniqueConstraint("playlist_id","position"),
 )
 
@@ -221,10 +221,6 @@ def get_current_user()->User:
 
 
 
-
-if __name__ == "__main__":
-    print(search_song_name("raid"))
-    print(query_artist_works("Jackson"))
     
 #     new_user("bruh", "ove")
 #     playlist_add_song("bruh", "my_playst", "Never gonna give you up", "Rick Astley")
