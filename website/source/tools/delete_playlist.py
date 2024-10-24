@@ -24,9 +24,9 @@ def db_delete_playlist(playlist_id, user_id):
     playlist = session.execute(stmt).scalars().first()
 
     if not playlist:
-        return f"Playlist with id '{playlist_id}' not found for this user."
+        return f"Playlist not found"
 
     session.delete(playlist)
     session.commit()
 
-    return f"Playlist with id '{playlist_id}' has been deleted."
+    return f"Playlist deleted"
