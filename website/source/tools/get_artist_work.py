@@ -11,6 +11,8 @@ from sqlalchemy.orm import selectinload
 @tool
 def get_artist_work(artist_name: Annotated[str, "name of artist"])-> Annotated[dict, "A dict of all works by the artist"]:
     """Provides a dict with works by artist"""
+
+    print("QUERYING ARTIST WORKS")
     try:
         return db_get_artist_work(artist_name)
     except Exception as exception:

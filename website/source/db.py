@@ -90,11 +90,12 @@ class Song(Base):
     # album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
     albums: Mapped[list[Album]] = relationship(secondary=song_album)
     genres: Mapped[list[Genre]] = relationship(secondary=song_genre)
-    release_date:Mapped[int] = mapped_column(Integer,nullable=True)
+    release_date: Mapped[int] = mapped_column(Integer,nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "release_year": self.release_date,
             "artists": [artist.to_dict() for artist in self.artists],
             "albums": [album.to_dict() for album in self.albums]
         }

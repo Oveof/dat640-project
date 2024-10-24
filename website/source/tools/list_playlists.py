@@ -15,7 +15,10 @@ def list_playlists() -> Annotated[List[Annotated[str, "A list of the users playl
     print("LIST PLAYLISTS WAS CALLED")
     user = get_current_user()
     try:
-        db_list_playlists(user.id)
+        
+        result = db_list_playlists(user.id)
+        print(result)
+        return result
     except Exception as exception:
         print(exception)
         return "Function call failed"
@@ -27,7 +30,7 @@ def db_list_playlists(user_id: int):
     playlists = session.execute(stmt).scalars().all()
 
     if not playlists:
-        return []
+        return "User has no playlists"
 
     playlist_details = [{"id": playlist.id, "name": playlist.name} for playlist in playlists]
 
