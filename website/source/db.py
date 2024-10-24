@@ -73,6 +73,12 @@ engine = create_engine("sqlite:///sqlite.db", echo=False)
 Base.metadata.create_all(engine)
 session_maker = sessionmaker(bind=engine)
 
+def search_song(song_name: str) -> Optional[Song]:
+    session = session_maker()
+    song = session.query(Song).filter_by(name=song_name).first()
+    return song 
+
+
 def add_song(song_name: str, artist: str):
     session = session_maker()
     song = session.query(Song).filter_by(name=song_name, artist=artist).first()
