@@ -26,6 +26,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 
+from source.tools.list_artist_work import get_artist_work
+
 
 examples = [
     HumanMessage(
@@ -43,7 +45,8 @@ examples.extend(add_song_to_playlist_examples)
 tool_dict = {
     "add_song_to_playlist": add_song_to_playlist,
     "list_user_playlist": list_user_playlists,
-    "search_song": search_song
+    "search_song": search_song,
+    "query_artist_works": get_artist_work
     }
 
 tools = list(tool_dict.values())
