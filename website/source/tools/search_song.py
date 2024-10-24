@@ -14,6 +14,8 @@ def search_song(song_title:
     Annotated[str, "something to search with"]
     ) -> Annotated[List[dict], "list of songs formatted in json with attributes"]:
     """Search for a song in the database"""
+    
+    print("searched for song")
     session = session_maker()
     search_pattern = f"%{song_title.lower()}%"
     stmt = (
@@ -21,7 +23,7 @@ def search_song(song_title:
         .options(
             selectinload(Song.artists),
             selectinload(Song.albums),
-            selectinload(Song.genres)
+            selectinload(Song.genres),
         )
         .where(func.lower(Song.name).like(search_pattern))
     )

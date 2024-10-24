@@ -13,6 +13,8 @@ def delete_playlist(
     playlist_id: Annotated[int, "id of the playlist"]
 ) -> Annotated[str, "message, containing information on result of query"]:
     """Deletes a playlist based on id"""
+    
+    print(f"CALLED DELETE PLAYLIST {playlist_id}")
 
     user = get_current_user()
     try:

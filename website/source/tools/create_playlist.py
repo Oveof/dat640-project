@@ -1,4 +1,5 @@
 import json
+import traceback
 from langchain_core.tools import tool
 from typing import Annotated, List
 from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
@@ -19,8 +20,9 @@ def create_playlist(
     user = get_current_user()
 
     try:
-        return create_playlist(playlist_name,user.id)
+        return db_create_playlist(playlist_name,user.id)
     except Exception as exception:
+        print(traceback.format_exc())
         print(exception)
         return "Function call failed"
 
@@ -34,7 +36,7 @@ def db_create_playlist(playlist_name,user_id):
     session.add(new_playlist)
     session.commit()
 
-    return "Successfully created playlist"
+    return f"Successfully created playlist: {playlist_name} with id: {new_playlist.id}, for user_id: {user_id}"
 
 if __name__ == "__main__":
     print(create_playlist("raid"))

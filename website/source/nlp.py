@@ -30,7 +30,7 @@ from source.tools.add_song_to_playlist import *
 from source.tools.remove_song_from_playlist import *
 from source.tools.search_song import *
 from source.tools.get_artist_work import *
-from source.tools.get_song_genre import *
+from source.tools.show_playlist_content import *
 
 
 
@@ -58,22 +58,25 @@ tool_dict = {
     "remove_song_from_playlist":remove_song_from_playlist,
     "clear_playlists": clear_playlist,
     "delete_playlist": delete_playlist,
-    
-    
+    "show_playlist_content": show_playlist_content,
+
     }
 
 tools = list(tool_dict.values())
 
-ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-small").bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
+ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo").bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
 
 
 system_prompt = f"""
-You are a helpful chat assistant which manages playlists.
+You are a helpful chat assistant which manages playlists. You must only provide answers based on what exists in the database.
+Do not try to answer queries by known knowledge since it might not be in the database.
 
 Strict rules:
-    1. Use the tools at your disposal.
-    2. Interact with the user.
-    3. Do not talk about anything other than music related things.
+    1. Use should always use the tools at your disposal.
+    2. Interact with the user, never show code.
+    3. Maintain the order in which items are returned from the tool calls, when responding to users.
+    4. Do not enumerate items by invented numbers, use their id's.
+    5. Do not talk about anything other than music related things.
 # """
 
 tool_node = ToolNode(tools)
