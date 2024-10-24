@@ -9,7 +9,6 @@ def search_song(song_title:
     Annotated[str, "something to search with"]
     ) -> Annotated[List[dict], "list of songs formatted in json with attributes"]:
     """Search for a song in the database"""
-    print(f"SEARCH SONG WAS CALLED: {song_title}")
     return []
 
 
