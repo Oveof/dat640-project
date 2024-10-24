@@ -51,7 +51,6 @@ examples.extend(add_song_to_playlist_examples)
 tool_dict = {
     "search_song": search_song,
     "query_artist_works": get_artist_work,
-    "query_song_genre": get_song_genre,
 
     "create_playlist": create_playlist,
     "list_playlists": list_playlists,

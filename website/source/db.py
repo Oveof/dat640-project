@@ -68,6 +68,11 @@ class Genre(Base):
     __tablename__ = "genres"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
 
 class Album(Base):
     __tablename__ = "albums"
@@ -96,7 +101,8 @@ class Song(Base):
             "id": self.id,
             "name": self.name,
             "artists": [artist.to_dict() for artist in self.artists],
-            "albums": [album.to_dict() for album in self.albums]
+            "albums": [album.to_dict() for album in self.albums],
+            "genres": [genre.to_dict() for genre in self.genres]
         }
 
 
