@@ -1,4 +1,4 @@
-from typing import Annotated, Sequence
+from typing import Annotated, Literal, Sequence, TypedDict
 import ollama
 
 from langchain_core.output_parsers import JsonOutputParser
@@ -19,6 +19,12 @@ from langchain_core.messages import BaseMessage
 from source.tools.add_song import add_song_to_playlist, add_song_to_playlist_examples
 from source.tools.search_song import search_song, search_song_examples
 from source.tools.list_user_playlist import list_user_playlists
+
+from langchain_core.messages import HumanMessage
+from langchain_core.tools import tool
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph, MessagesState
+from langgraph.prebuilt import ToolNode
 
 
 examples = [
@@ -52,81 +58,98 @@ Strict rules:
     1. Do not call tools unless its really obvious that its what the user wants.
     2. Interact with the user.
     3. Do not talk about anything other than music related things.
-"""
-class State(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
-    language: str
+# """
+# class State(TypedDict):
+#     messages: Annotated[Sequence[BaseMessage], add_messages]
+#     language: str
 
-workflow = StateGraph(state_schema=MessagesState)
-ollama_model.bind(tools=tools)
+# workflow = StateGraph(state_schema=MessagesState)
+# ollama_model.bind(tools=tools)
 
-few_shot_prompt = ChatPromptTemplate.from_messages(
-[
-    ("system", system_prompt),
-    *examples,
-])
+# few_shot_prompt = ChatPromptTemplate.from_messages(
+# [
+#     ("system", system_prompt),
+#     *examples,
+# ])
 
-chain = {"query": RunnablePassthrough()} | few_shot_prompt | ollama_model
-
-
-def call_model(state: State):
-    response = chain.invoke(state["messages"])
-    return {"messages": response}
+# chain = {"query": RunnablePassthrough()} | few_shot_prompt | ollama_model
 
 
-workflow.add_edge(START, "model")
-workflow.add_node("model", call_model)
-
-memory = MemorySaver()
-app = workflow.compile(checkpointer=memory)
+# def call_model(state: State):
+#     response = chain.invoke(state["messages"])
+#     return {"messages": response}
 
 
-config = {"configurable": {"thread_id": "abc123"}}
+# workflow.add_edge(START, "model")
+# workflow.add_node("model", call_model)
+
+# memory = MemorySaver()
+# app = workflow.compile(checkpointer=memory)
+
+
+# config = {"configurable": {"thread_id": "abc123"}}
+
+# def handle_nonempty_user_input( user_prompt ):
+
+#     input_dict = {
+#         "messages": [HumanMessage(user_prompt)],
+#     }
+#     output = app.invoke(input_dict, config)
+
+#     content = ""
+#     tool_calls = []
+
+
+#     while content=="":
+#         content = output["messages"][-1].content
+#         print(content)
+#         # tool_call_message=  """You are in a tool calling loop you have the following options:
+#         #     - Call another tool if you are not finished if so do not write any text, just call the appropriate tool.
+#         #     - The desired operation is finished, if so respond to the user don't call any more tools.
+#         # """
+#         for tool_call in tool_calls:
+#             selected_tool = tool_dict[tool_call["name"].lower()]
+#             tool_output = selected_tool.invoke(tool_call["args"])
+
+#             print(tool_output)
+
+
+#     return content
+tool_node = ToolNode(tools)
+
+def should_continue(state: MessagesState) -> Literal["tools", END]:
+    messages = state['messages']
+    last_message = messages[-1]
+    # If the LLM makes a tool call, then we route to the "tools" node
+    if last_message.tool_calls:
+        return "tools"
+    # Otherwise, we stop (reply to the user)
+    return END
+
+def call_model(state: MessagesState):
+    messages = state['messages']
+    response = ollama_model.invoke(messages)
+    # We return a list, because this will get added to the existing list
+    return {"messages": [response]}
+
+
+workflow = StateGraph(MessagesState)
+workflow.add_node("agent", call_model)
+workflow.add_node("tools", tool_node)
+workflow.add_edge(START, "agent")
+workflow.add_conditional_edges("agent",should_continue)
+workflow.add_edge("tools","agent")
+# workflow.add_conditional_edges("agent",should_continue)
+# workflow.add_conditional_edges("tools","tool")
+
+checkpointer = MemorySaver()
+app = workflow.compile(checkpointer=checkpointer)
+
 
 def handle_nonempty_user_input( user_prompt ):
+    final_state = app.invoke(
+        {"messages": [HumanMessage(content=user_prompt)]},
+        config={"configurable": {"thread_id": 101}}
+    )
 
-    input_dict = {
-        "messages": [HumanMessage(user_prompt)],
-    }
-    output = app.invoke(input_dict, config)
-
-    content = "hello"
-    tool_calls = "hello"
-
-    print(output)
-
-    while content == "":
-        for tool_call in tool_calls:
-            selected_tool = tool_dict[tool_call["name"].lower()]
-            tool_output = selected_tool.invoke(tool_call["args"])
-            tool_call_message=  """You are in a tool calling loop you have the following options:
-                - Call another tool if you are not finished if so do not write any text, just call the appropriate tool.
-                - The desired operation is finished, if so respond to the user don't call any more tools.
-            """
-            
-
-    # while content=="":
-    #     messages = few_shot_prompt.messages
-    #     for tool_call in tool_calls:
-    #         selected_tool = tool_dict[tool_call["name"].lower()]
-    #         tool_output = selected_tool.invoke(tool_call["args"])
-    #         messages.append(ToolMessage(tool_output, tool_call_id=tool_call["id"]))
-
-    #     messages.push()
-    #     ChatPromptTemplate.from_messages(few_shot_prompt.messages)
-
-    # print(content)
-    # if len(tool_calls)==0:
-    #     return content
-    # else:
-    #     return f"I am calling the tool {tool_calls}"
-
-    # response =  ollama_model.chat(
-    #     model='mistral',
-    #     messages=prompt,
-    #     tools=tools,
-    # )
-
-    return response
-
-
+    return final_state["messages"][-1].content
