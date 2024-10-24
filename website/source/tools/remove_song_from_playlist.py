@@ -35,4 +35,4 @@ def db_remove_song_from_playlist(song_id,playlist_id,user_id):
 
     session.commit()
 
-    return "Success"
+    return "Successfully removed song"

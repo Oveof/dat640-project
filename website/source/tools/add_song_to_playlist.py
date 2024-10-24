@@ -1,8 +1,8 @@
 from langchain_core.tools import tool
 from typing import Annotated, List
 from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
-from source.db import Playlist, Song, get_current_user, session_maker
-from sqlalchemy import select
+from source.db import Playlist, Song, get_current_user, session_maker, playlist_song
+from sqlalchemy import select, func
 
 
 @tool
@@ -20,19 +20,26 @@ def add_song_to_playlist(
 
 def db_add_song_to_playlist(song_id,playlist_id,user_id):
     session = session_maker()
+
     stmt = select(Playlist).filter_by(id=playlist_id,user_id=user_id)
     playlist = session.execute(stmt).scalars().first()
-
-    # playlist = session.query(Playlist).filter_by(id=playlist_id, user_id=user.id).first()
 
     if not playlist:
         return "Playlist not found"
 
-    song = session.query(Song).filter_by(id=song_id).first()
+    stmt = select(Song).filter_by(id=song_id)
+    song = session.execute(stmt).scalars().first()
+
+    stmt = select(func.max(playlist_song.c.position)).filter_by(playlist_id=playlist_id)
+    current_max_position = session.execute(stmt).scalar()
+
+    new_position = (current_max_position or 0) + 1
+
+    stmt = playlist_song.insert().values(playlist_id=playlist_id, song_id=song_id, position=new_position)
+    session.execute(stmt)
 
     if not song:
         return "Song not found"
-
 
     playlist.songs.append(song)
     session.commit()
