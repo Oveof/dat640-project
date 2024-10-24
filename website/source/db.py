@@ -73,7 +73,7 @@ class Album(Base):
     __tablename__ = "albums"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
-    release_date:Mapped[int] = mapped_column(Integer,nullable=False)
+    release_date:Mapped[int] = mapped_column(Integer,nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
@@ -90,7 +90,7 @@ class Song(Base):
     # album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
     albums: Mapped[list[Album]] = relationship(secondary=song_album)
     genres: Mapped[list[Genre]] = relationship(secondary=song_genre)
-    # release_date:Mapped[int] = mapped_column(Integer,nullable=False)
+    release_date:Mapped[int] = mapped_column(Integer,nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
