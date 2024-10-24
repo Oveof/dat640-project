@@ -11,7 +11,13 @@ from sqlalchemy.orm import selectinload
 @tool
 def get_artist_work(artist_name: Annotated[str, "name of artist"])-> Annotated[dict, "A dict of all works by the artist"]:
     """Provides a dict with works by artist"""
+    try:
+        return db_get_artist_work(artist_name)
+    except Exception as exception:
+        print(exception)
+        return {"error": "Something went wrong"}
 
+def db_get_artist_work(artist_name: str) -> dict:
     session = session_maker()
     search_pattern = f"%{artist_name.lower()}%"
 

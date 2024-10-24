@@ -14,9 +14,17 @@ def list_playlists() -> Annotated[List[Annotated[str, "A list of the users playl
 
     print("LIST PLAYLISTS WAS CALLED")
     user = get_current_user()
+    try:
+        db_list_playlists(user.id)
+    except Exception as exception:
+        #TODO: probably should not be empty list?
+        print(exception)
+        return []
+
+def db_list_playlists(user_id: int):
     session = session_maker()
 
-    stmt = select(Playlist).filter_by(user_id=user.id)
+    stmt = select(Playlist).filter_by(user_id=user_id)
     playlists = session.execute(stmt).scalars().all()
 
     if not playlists:
@@ -25,7 +33,3 @@ def list_playlists() -> Annotated[List[Annotated[str, "A list of the users playl
     playlist_details = [{"id": playlist.id, "name": playlist.name} for playlist in playlists]
 
     return playlist_details
-
-
-
-
