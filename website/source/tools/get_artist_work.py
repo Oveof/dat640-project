@@ -2,7 +2,7 @@ import json
 from langchain_core.tools import tool
 from typing import Annotated, List
 from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
-from source.db import Artist, Song, song_artists, session_maker
+from source.db import Artist, Song, get_current_user, song_artists, session_maker
 
 from sqlalchemy import select
 from sqlalchemy import func
@@ -13,13 +13,16 @@ def get_artist_work(artist_name: Annotated[str, "name of artist"])-> Annotated[d
     """Provides a dict with works by artist"""
 
     print("QUERYING ARTIST WORKS")
+    user = get_current_user()
+
     try:
-        return db_get_artist_work(artist_name)
+        return db_get_artist_work(artist_name,user.id)
     except Exception as exception:
         print(exception)
         return "Function call failed"
 
-def db_get_artist_work(artist_name: str) -> dict:
+def db_get_artist_work(artist_name: str,user_id) -> dict:
+    
     session = session_maker()
     search_pattern = f"%{artist_name.lower()}%"
 

@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 
+
 @tool
 def delete_playlist(
     playlist_id: Annotated[int, "id of the playlist"]
@@ -17,6 +18,7 @@ def delete_playlist(
     print(f"CALLED DELETE PLAYLIST {playlist_id}")
 
     user = get_current_user()
+    
     try:
         return db_delete_playlist(playlist_id,user.id)
     except Exception as exception:

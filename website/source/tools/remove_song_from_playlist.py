@@ -22,6 +22,7 @@ def remove_song_from_playlist(
 
 def db_remove_song_from_playlist(song_id,playlist_id,user_id):
     session = session_maker()
+    
 
     playlist = session.query(Playlist).filter_by(id=playlist_id, user_id=user_id).first()
 

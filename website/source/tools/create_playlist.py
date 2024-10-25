@@ -31,6 +31,7 @@ def create_playlist(
 
 def db_create_playlist(playlist_name,user_id):
     session = session_maker()
+    
 
     new_playlist = Playlist(name=playlist_name, user_id=user_id, songs=[])
     session.add(new_playlist)

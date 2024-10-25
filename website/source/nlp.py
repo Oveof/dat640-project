@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Annotated, Literal, Sequence, TypedDict
 import ollama
 
@@ -35,18 +36,18 @@ from source.tools.show_playlist_content import *
 
 
 
-examples = [
-    HumanMessage(
-        "what can you do", name="example_user0"
-    ),
-    AIMessage(
-        "I am a helpful playlist assistant, I can help you search for songs.",
-        name="example_assistant0",
-        tool_calls=[],
-    ),
-]
-examples.extend(search_song_examples)
-examples.extend(add_song_to_playlist_examples)
+# examples = [
+#     HumanMessage(
+#         "what can you do", name="example_user0"
+#     ),
+#     AIMessage(
+#         "I am a helpful playlist assistant, I can help you search for songs.",
+#         name="example_assistant0",
+#         tool_calls=[],
+#     ),
+# ]
+# examples.extend(search_song_examples)
+# examples.extend(add_song_to_playlist_examples)
 
 tool_dict = {
     "search_song": search_song,
@@ -59,13 +60,11 @@ tool_dict = {
     "clear_playlists": clear_playlist,
     "delete_playlist": delete_playlist,
     "show_playlist_content": show_playlist_content,
-
     }
 
+
+
 tools = list(tool_dict.values())
-
-ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo").bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
-
 
 system_prompt = f"""
 You are a helpful chat assistant which manages playlists. You must only provide answers based on what exists in the database.
@@ -77,7 +76,9 @@ Strict rules:
     3. Maintain the order in which items are returned from the tool calls, when responding to users.
     4. Do not enumerate items by invented numbers, use their id's.
     5. Do not talk about anything other than music related things.
-# """
+"""
+
+ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo",num_ctx=1024,temperature=0.2,system=system_prompt).bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
 
 tool_node = ToolNode(tools)
 
@@ -88,12 +89,9 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
         return "tools"
     return END
 
+
 def call_model(state: MessagesState):
     messages = state['messages']
-    if not any(type(message) == SystemMessage for message in messages):
-        system_message = SystemMessage(content=system_prompt)
-        messages.insert(0, system_message)  # Insert at the beginning to avoid altering the flow
-
     response = ollama_model.invoke(messages)
     return {"messages": [response]}
 
@@ -113,9 +111,14 @@ app = workflow.compile(checkpointer=checkpointer)
 
 def handle_nonempty_user_input( user_prompt ):
     user = get_current_user()
+
     final_state = app.invoke(
-        {"messages": [HumanMessage(content=user_prompt)]},
+        {"messages": [
+            HumanMessage(content=user_prompt)
+        ]},
         config={"configurable": {"thread_id": user.user_session}}
     )
 
     return final_state["messages"][-1].content
+
+

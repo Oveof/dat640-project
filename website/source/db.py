@@ -225,12 +225,4 @@ def get_current_user()->User:
     return user
 
 
-
-
-
-    
-#     new_user("bruh", "ove")
-#     playlist_add_song("bruh", "my_playst", "Never gonna give you up", "Rick Astley")
-#     # playlist_remove_song("bruh", "my_playst", "Never gonna give you up")
-#     print(list_playlist("bruh", "my_playst"))
-
+user_tool_usage_count = {}

@@ -7,8 +7,6 @@ from source.tools.list_playlists import db_list_playlists
 
 
 
-
-
 assert db_create_playlist("TESTING_PLAYLIST",0) == "Successfully created playlist"
 assert db_delete_playlist(10000000,0) == "Playlist not found"
 assert db_delete_playlist(1,0) == "Playlist deleted"
