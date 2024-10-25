@@ -78,12 +78,12 @@ class Album(Base):
     __tablename__ = "albums"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=False)
-    release_date:Mapped[int] = mapped_column(Integer,nullable=True)
+    release_year: Mapped[int] = mapped_column(Integer,nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
-            "release_date": self.release_date
+            "release_year": self.release_year
         }
 
 class Song(Base):
@@ -95,15 +95,17 @@ class Song(Base):
     # album: Mapped[int] = mapped_column(ForeignKey("albums.id"), nullable=False)
     albums: Mapped[list[Album]] = relationship(secondary=song_album)
     genres: Mapped[list[Genre]] = relationship(secondary=song_genre)
-    release_date: Mapped[int] = mapped_column(Integer,nullable=True)
+    release_year: Mapped[int] = mapped_column(Integer,nullable=True)
+    country: Mapped[str] = mapped_column(String(NAME_LENGTH), nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
-            "release_year": self.release_date,
+            "release_year": self.release_year,
             "artists": [artist.to_dict() for artist in self.artists],
             "albums": [album.to_dict() for album in self.albums],
-            "genres": [genre.to_dict() for genre in self.genres]
+            "genres": [genre.to_dict() for genre in self.genres],
+            "country": self.country
         }
 
 
