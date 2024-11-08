@@ -23,6 +23,7 @@ def clear_playlist(
 
 def db_clear_playlist(playlist_name,user_id):
     session = session_maker()
+    
     stmt = select(Playlist).filter_by(name=playlist_name,user_id=user_id)
     playlist = session.execute(stmt).scalars().first()
 

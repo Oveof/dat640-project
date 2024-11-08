@@ -12,6 +12,7 @@ def show_playlist_content(playlist_id: Annotated[int, "playlist id"]) -> Annotat
 
     print(f"LIST PLAYLIST CONTENT WAS CALLED {playlist_id}")
     user = get_current_user()
+
     try:
         result= db_get_playlist_songs(playlist_id,user.id)
         print(result)

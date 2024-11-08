@@ -8,14 +8,15 @@ from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 
 
+
 @tool
 def list_playlists() -> Annotated[List[Annotated[str, "A list of the users playlists"]], "List of playlists for the current user"]:
     """List all playlists for the current user"""
 
     print("LIST PLAYLISTS WAS CALLED")
     user = get_current_user()
+
     try:
-        
         result = db_list_playlists(user.id)
         print(result)
         return result
@@ -30,7 +31,7 @@ def db_list_playlists(user_id: int):
     playlists = session.execute(stmt).scalars().all()
 
     if not playlists:
-        return "User has no playlists"
+        return f"User id {user_id} has no playlists"
 
     playlist_details = [{"id": playlist.id, "name": playlist.name} for playlist in playlists]
 
