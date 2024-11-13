@@ -27,8 +27,6 @@ playlist_song = Table(
     Base.metadata,
     Column("playlist_id", ForeignKey("playlists.id"), nullable=False),
     Column("song_id", ForeignKey("songs.id"),  nullable=False),
-    Column("position", Integer(),nullable=False, autoincrement=True),
-    UniqueConstraint("playlist_id","position"),
 )
 
 song_artists = Table(
