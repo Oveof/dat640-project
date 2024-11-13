@@ -52,7 +52,6 @@ from source.tools.show_playlist_content import *
 tool_dict = {
     "search_song": search_song,
     "query_artist_works": get_artist_work,
-
     "create_playlist": create_playlist,
     "list_playlists": list_playlists,
     "add_song_to_playlist": add_song_to_playlist,
@@ -66,45 +65,42 @@ tool_dict = {
 
 tools = list(tool_dict.values())
 
-system_prompt = f"""
-You are a chat assistant dedicated to managing and retrieving playlist information, responding in plain, straightforward English. Your role is to provide only verified information directly from the database.
-
-When a user asks for details, updates or suggestions related to playlists or songs, ALWAYS use database to ensure accuracy. Base each response strictly on the database’s contents to maintain reliability. Respond clearly and accurately, using english that is simple and easy for the user to understand.
-
-Strict rules:
-    1. Use should always use the tools at your disposal.
-    2. Interact with the user, never show code.
-    3. Maintain the order in which items are returned from the tool calls, when responding to users.
-    4. Do not enumerate items by invented numbers, use their id's.
-    5. Do not talk about anything other than music related things.
-"""
-
-ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo",num_ctx=2048,temperature=0.2,system=system_prompt).bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
+tool_caller_model = ChatOllama(base_url="http://10.10.10.20:11434/", model="mistral", num_ctx=3096, temperature=0.2, system="You one job is to decide if a tool should be called or not. If so call it and dont produce any other output.").bind_tools(tools)
+output_formatter_model = ChatOllama(base_url="http://10.10.10.20:11434/", model="mistral-nemo", num_ctx=3096, temperature=0.2, system="You make human readable output, you are part of a larger system, so your job is just to respond to the user with what has happened in the previous stage as if its a part of you. Ensure that you always use data from the database and not pretrained knowledge.")
 
 tool_node = ToolNode(tools)
 
-def should_continue(state: MessagesState) -> Literal["tools", END]:
+# Function to call the tool-specialist model
+def call_tool_caller_model(state: MessagesState):
+    messages = state['messages']
+    response = tool_caller_model.invoke(messages)
+    return {"messages": [response]}
+
+# Function to decide if the tool node should be executed based on tool calls
+def should_continue(state: MessagesState) -> Literal["tools", "output_formatter"]:
     messages = state['messages']
     last_message = messages[-1]
     if last_message.tool_calls:
         return "tools"
-    return END
+    return "output_formatter"
 
-
-def call_model(state: MessagesState):
+# Function to call the output formatter model
+def call_output_formatter_model(state: MessagesState):
     messages = state['messages']
-    response = ollama_model.invoke(messages)
+    # last_tool_output = messages[-1]  # Retrieve the output from the tool-specialist model
+    # formatted_prompt = f"Generate a user-friendly summary for this output:\n{last_tool_output.text}"
+    response = output_formatter_model.invoke(messages)
     return {"messages": [response]}
 
-
+# Construct the workflow state graph
 workflow = StateGraph(MessagesState)
-workflow.add_node("agent", call_model)
+workflow.add_node("tool_caller", call_tool_caller_model)
 workflow.add_node("tools", tool_node)
-workflow.add_edge(START, "agent")
-workflow.add_conditional_edges("agent",should_continue)
-workflow.add_edge("tools","agent")
-# workflow.add_conditional_edges("agent",should_continue)
-# workflow.add_conditional_edges("tools","tool")
+workflow.add_node("output_formatter", call_output_formatter_model)
+
+workflow.add_edge(START, "tool_caller")  # Start with the tool caller
+workflow.add_conditional_edges("tool_caller", should_continue)  # Conditionally go to tools or formatter
+workflow.add_edge("tools", "output_formatter")  # Return to tool caller after tools execution
 
 checkpointer = MemorySaver()
 app = workflow.compile(checkpointer=checkpointer)
