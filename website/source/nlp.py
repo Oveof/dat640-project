@@ -67,8 +67,9 @@ tool_dict = {
 tools = list(tool_dict.values())
 
 system_prompt = f"""
-You are a helpful chat assistant which manages playlists. You must only provide answers based on what exists in the database.
-Do not try to answer queries by known knowledge since it might not be in the database.
+You are a chat assistant dedicated to managing and retrieving playlist information, responding in plain, straightforward English. Your role is to provide only verified information directly from the database.
+
+When a user asks for details, updates or suggestions related to playlists or songs, ALWAYS use database to ensure accuracy. Base each response strictly on the database’s contents to maintain reliability. Respond clearly and accurately, using english that is simple and easy for the user to understand.
 
 Strict rules:
     1. Use should always use the tools at your disposal.
@@ -78,7 +79,7 @@ Strict rules:
     5. Do not talk about anything other than music related things.
 """
 
-ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo",num_ctx=1024,temperature=0.2,system=system_prompt).bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
+ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo",num_ctx=2048,temperature=0.2,system=system_prompt).bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))
 
 tool_node = ToolNode(tools)
 
