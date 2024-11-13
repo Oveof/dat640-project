@@ -65,7 +65,7 @@ tool_dict = {
 
 tools = list(tool_dict.values())
 
-tool_caller_model = ChatOllama(base_url="http://10.10.10.20:11434/", model="mistral", num_ctx=3096, temperature=0.2, system="You one job is to decide if a tool should be called or not. If so call it and dont produce any other output.").bind_tools(tools)
+tool_caller_model = ChatOllama(base_url="http://10.10.10.20:11434/", model="mistral-nemo", num_ctx=3096, temperature=0.2, system="You one job is to decide if a tool should be called or not. If so call it and dont produce any other output.").bind_tools(tools)
 output_formatter_model = ChatOllama(base_url="http://10.10.10.20:11434/", model="mistral-nemo", num_ctx=3096, temperature=0.2, system="You make human readable output, you are part of a larger system, so your job is just to respond to the user with what has happened in the previous stage as if its a part of you. Ensure that you always use data from the database and not pretrained knowledge.")
 
 tool_node = ToolNode(tools)
