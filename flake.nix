@@ -11,19 +11,6 @@
       let
         pkgs = import nixpkgs { inherit system; };
         pythonEnv = pkgs.python312.withPackages (ps: with ps; [
-          # imutils
-          # matplotlib
-          # opencv4
-          # pillow
-          # scikit-image
-          # scikit-learn
-          # scipy
-          # torch
-          # torchvision
-          # torchsummary
-          # transformers
-          # sentencepiece
-          # accelerate
           pip
           numpy
           langchain
@@ -36,7 +23,7 @@
           sqlalchemy
         ]);
         systemPackages = with pkgs; [
-	  pyright
+          pyright
           python-launcher
         ];
         musicCRS = pkgs.stdenv.mkDerivation {
