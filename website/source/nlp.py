@@ -32,6 +32,8 @@ from source.tools.remove_song_from_playlist import *
 from source.tools.search_song import *
 from source.tools.get_artist_work import *
 from source.tools.show_playlist_content import *
+from source.tools.recommend_song_based_on_playlist import recommend_song_based_on_playlist
+from source.tools.get_album_info import get_album_info
 
 
 
@@ -60,6 +62,9 @@ tool_dict = {
     "clear_playlists": clear_playlist,
     "delete_playlist": delete_playlist,
     "show_playlist_content": show_playlist_content,
+
+    "recommend_song_based_on_playlist": recommend_song_based_on_playlist,
+    "get_album_info": get_album_info,
     }
 
 
@@ -69,14 +74,14 @@ tools = list(tool_dict.values())
 system_prompt = f"""
 You are a chat assistant dedicated to managing and retrieving playlist information, responding in plain, straightforward English. Your role is to provide only verified information directly from the database.
 
-When a user asks for details, updates or suggestions related to playlists or songs, ALWAYS use database to ensure accuracy. Base each response strictly on the database’s contents to maintain reliability. Respond clearly and accurately, using english that is simple and easy for the user to understand.
+When a user asks for details, updates or suggestions related to playlists or songs, ALWAYS use database to ensure accuracy, and only use the database for information. Base each response strictly on the database’s contents to maintain reliability. Respond clearly and accurately, using english that is simple and easy for the user to understand.
 
 Strict rules:
-    1. Use should always use the tools at your disposal.
-    2. Interact with the user, never show code.
-    3. Maintain the order in which items are returned from the tool calls, when responding to users.
-    4. Do not enumerate items by invented numbers, use their id's.
-    5. Do not talk about anything other than music related things.
+- Use should always use the tools at your disposal.
+- Interact with the user, never show code.
+- Maintain the order in which items are returned from the tool calls, when responding to users.
+- Always use database IDs from JSON objects when listing songs.
+- Do not talk about anything other than music related things.
 """
 
 ollama_model = ChatOllama(base_url="http://10.10.10.20:11434/",model="mistral-nemo",num_ctx=2048,temperature=0.2,system=system_prompt).bind_tools(tools) # ollama.Client(host='10.10.10.20:11434'))

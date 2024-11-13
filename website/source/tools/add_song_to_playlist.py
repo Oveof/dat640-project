@@ -41,7 +41,7 @@ def db_add_song_to_playlist(song_id,playlist_id,user_id):
 
     new_position = (current_max_position or 0) + 1
 
-    stmt = playlist_song.insert().values(playlist_id=playlist_id, song_id=song_id, position=new_position)
+    stmt = playlist_song.insert().values(playlist_id=playlist_id, song_id=song_id)
     session.execute(stmt)
 
     if not song:

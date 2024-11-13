@@ -8,10 +8,10 @@ from sqlalchemy.orm import selectinload
 
 
 @tool
-def recommend_song(
+def recommend_song_based_on_playlist(
     playlist_id: Annotated[int, "playlist id"]
 ) -> Annotated[list, "list of recommended songs"]:
-    """Add a song to a user's playlist, song and playlist id can be found by searching for the song first, and then listing the playlists and their id's"""
+    """This function recommends songs based on users playlist"""
 
     # print(f"CALLED ADD SONG TO PLAYLIST: SONG_ID {song_id} , playlist_id: {playlist_id}")
     user = get_current_user()
@@ -42,18 +42,21 @@ def find_similar_songs(playlist_id, user_id):
 
     # Find the most popular genre
     most_popular_genre = max(genre_counts, key=genre_counts.get)
+    # ignored_song_ids = [id for id in playlist.songs]
 
     # Query for songs with the most popular genre
     song_stmt = (
         select(Song)
         .options(selectinload(Song.genres))
+        .options(selectinload(Song.artists))
         .join(song_genre)
         .where(song_genre.c.genre_id == most_popular_genre.id)
+        # .where(~Song.id.in_(ignored_song_ids))
         .limit(10)
     )
 
     songs = session.execute(song_stmt).scalars().all()
 
-    session.commit()
+    songs = [{"song_id": song.id, "name": song.name, "genre": song.genres} for song in songs]
     return songs
 
