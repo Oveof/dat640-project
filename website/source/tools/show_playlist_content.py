@@ -49,7 +49,7 @@ def db_get_playlist_songs(playlist_id: int,user_id:int):
         song_info = {
             "id": song.id,
             "name": song.name,
-            "release_year": song.release_date,
+            "release_year": song.release_year,
             "artists": [artist.name for artist in song.artists],
             "albums": [album.name for album in song.albums] if song.albums else [],
             "genres": [genre.name for genre in song.genres] if song.genres else []

@@ -34,6 +34,7 @@ def search_song(song_title:
     if len(songs_list) > 5:
         songs_list = songs_list[:5]
 
+    print(songs_list)
     return json.dumps(songs_list, indent=4)
 
 

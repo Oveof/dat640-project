@@ -51,7 +51,7 @@ def db_get_artist_work(artist_name: str,user_id) -> dict:
         "songs": [
             {
                 "song_name": song.name,
-                "albums": [{"album_name": album.name, "release_date": album.release_date} for album in song.albums]
+                "albums": [{"album_name": album.name, "release_year": album.release_year} for album in song.albums]
             }
             for song in songs
         ]
