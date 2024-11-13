@@ -7,25 +7,24 @@ from sqlalchemy import select, func
 
 @tool
 def add_song_to_playlist(
-    song_id: Annotated[int, "song id"],
+    song_ids: Annotated[List[int], "List of song ids"],
     playlist_id: Annotated[int, "playlist id"]
 ) -> Annotated[bool, "True or False, means success or failure to add song"]:
-    """Add a song to a user's playlist, song and playlist id can be found by searching for the song first, and then listing the playlists and their id's"""
+    """Add one or more songs to a user's playlist, song and playlist id can be found by searching for the song first, and then listing the playlists and their id's"""
 
-    print(f"CALLED ADD SONG TO PLAYLIST: SONG_ID {song_id} , playlist_id: {playlist_id}")
+    print(f"CALLED ADD SONG TO PLAYLIST: SONG_ID {song_ids} , playlist_id: {playlist_id}")
     user = get_current_user()
 
     try:
-        return db_add_song_to_playlist(song_id,playlist_id,user.id)
+        return db_add_song_to_playlist(song_ids,playlist_id,user.id)
     except Exception as exception:
         print(exception)
         return "Function call failed"
 
 
-def db_add_song_to_playlist(song_id,playlist_id,user_id):
-    
-    
+def db_add_song_to_playlist(song_ids,playlist_id,user_id):
     session = session_maker()
+    session.begin_nested()
 
     stmt = select(Playlist).filter_by(id=playlist_id,user_id=user_id)
     playlist = session.execute(stmt).scalars().first()
@@ -33,22 +32,17 @@ def db_add_song_to_playlist(song_id,playlist_id,user_id):
     if not playlist:
         return "Playlist not found"
 
-    stmt = select(Song).filter_by(id=song_id)
-    song = session.execute(stmt).scalars().first()
+    for song_id in song_ids:
+        stmt = select(Song).filter_by(id=song_id)
+        song = session.execute(stmt).scalars().first()
+        if not song:
+            return "Song not found"
 
-    stmt = select(func.max(playlist_song.c.position)).filter_by(playlist_id=playlist_id)
-    current_max_position = session.execute(stmt).scalar()
+        stmt = playlist_song.insert().values(playlist_id=playlist_id, song_id=song_id)
+        session.execute(stmt)
 
-    new_position = (current_max_position or 0) + 1
-
-    stmt = playlist_song.insert().values(playlist_id=playlist_id, song_id=song_id)
-    session.execute(stmt)
-
-    if not song:
-        return "Song not found"
-
-    playlist.songs.append(song)
-    session.commit()
+        playlist.songs.append(song)
+        session.commit()
     return "Success"
 
 
