@@ -40,9 +40,9 @@ def db_add_song_to_playlist(song_ids,playlist_id,user_id):
 
         stmt = playlist_song.insert().values(playlist_id=playlist_id, song_id=song_id)
         session.execute(stmt)
-
         playlist.songs.append(song)
-        session.commit()
+
+    session.commit()
     return "Success"
 
 
