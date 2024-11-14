@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 
 @tool
-def search_song(song_title:
+def search_or_suggest_song(song_title:
     Annotated[str, "something to search with"]
     ) -> Annotated[List[dict], "list of songs formatted in json with attributes"]:
     """Search or suggest a song in the database"""

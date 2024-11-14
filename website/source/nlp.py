@@ -34,6 +34,7 @@ from source.tools.get_artist_work import *
 from source.tools.show_playlist_content import *
 from source.tools.recommend_song_based_on_playlist import recommend_song_based_on_playlist
 from source.tools.get_album_info import get_album_info
+from source.tools.search_album import search_album
 
 
 
@@ -52,7 +53,7 @@ from source.tools.get_album_info import get_album_info
 # examples.extend(add_song_to_playlist_examples)
 
 tool_dict = {
-    "search_song": search_song,
+    "search_or_suggest_song": search_or_suggest_song,
     "query_artist_works": get_artist_work,
     "create_playlist": create_playlist,
     "list_playlists": list_playlists,
@@ -64,6 +65,7 @@ tool_dict = {
 
     "recommend_song_based_on_playlist": recommend_song_based_on_playlist,
     "get_album_info": get_album_info,
+    "search_album": search_album,
     }
 
 
